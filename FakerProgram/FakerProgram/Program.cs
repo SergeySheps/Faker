@@ -13,6 +13,12 @@ namespace FakerProgram
         {
             Faker faker = new Faker();
             Foo foo = faker.Create<Foo>();
+            var randomizer = new CustomRandomizer();
+
+            Console.WriteLine(randomizer.GetDouble());
+            Console.WriteLine(randomizer.GetString());
+            Console.WriteLine(randomizer.GetDateTime());
+            Console.ReadKey();
         }
     }
 }

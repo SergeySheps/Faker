@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FakerLibrary
+namespace FakerProgram
 {
-    public class Foo
+    class Bar
     {
-        public int Id { get; set; }
     }
 }
