@@ -22,6 +22,7 @@ namespace FakerProgram
 
         private static void OutputProperties(object value)
         {
+            
             Console.WriteLine("Class: " + value.GetType().Name);
             foreach (var property in value.GetType().GetProperties())
             {

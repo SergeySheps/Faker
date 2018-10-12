@@ -15,18 +15,28 @@ namespace FakerLibrary
         {
             generators = new Dictionary<Type, IGenerator>();
             nestedObjects = new List<object>();
+            initializeGenDicitonary();
+            GetGenerators("Plugins.dll");
+        }
+
+        private void initializeGenDicitonary()
+        {
             generators.Add(typeof(String), (IGenerator)Activator.CreateInstance(typeof(StringGenerator)));
             generators.Add(typeof(Int32), (IGenerator)Activator.CreateInstance(typeof(Int32Generator)));
             generators.Add(typeof(Int64), (IGenerator)Activator.CreateInstance(typeof(Int64Generator)));
             generators.Add(typeof(float), (IGenerator)Activator.CreateInstance(typeof(FloatGenerator)));
             generators.Add(typeof(double), (IGenerator)Activator.CreateInstance(typeof(DoubleGenerator)));
             generators.Add(typeof(DateTime), (IGenerator)Activator.CreateInstance(typeof(DateTimeGenerator)));
-            GetGenerators();
         }
 
-        private void GetGenerators()
+
+        private void GetGenerators(string path, bool isFakerLibrary = false)
         {
-            var asm = Assembly.LoadFrom("Plugins.dll");
+            if (!isFakerLibrary)
+            {
+                return;
+            }
+            var asm = Assembly.LoadFrom(path);
             foreach (var type in asm.GetTypes())
             {
                 if (type.GetInterface(typeof(IGenerator).FullName) != null)
@@ -45,20 +55,29 @@ namespace FakerLibrary
             }
 
             var constructors = typeof(T).GetConstructors().OrderByDescending(x => x.GetParameters().Length);
-            var constructor = constructors.First();
-
-            var parametersInfo = constructor.GetParameters();
-            var parameters = new object[parametersInfo.Length];
-
-            for (int i = 0; i < parametersInfo.Length; i++)
+            ConstructorInfo constructor = null;
+            object[] parameters = null;
+            try
             {
-                if (generators.TryGetValue(parametersInfo[i].ParameterType, out var generator))
+                constructor = constructors.First();
+
+                var parametersInfo = constructor.GetParameters();
+                parameters = new object[parametersInfo.Length];
+
+                for (int i = 0; i < parametersInfo.Length; i++)
                 {
-                    parameters[i] = generator.GetValue();
+                    if (generators.TryGetValue(parametersInfo[i].ParameterType, out var generator))
+                    {
+                        parameters[i] = generator.GetValue();
+                    }
                 }
             }
+            catch (Exception)
+            {
 
-            var result = constructor.Invoke(parameters);
+            }
+
+            var result = constructor != null ? constructor.Invoke(parameters) : Activator.CreateInstance(typeof(T));
 
             foreach (var property in typeof(T).GetProperties())
             {
