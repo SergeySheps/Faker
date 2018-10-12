@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Generators
 {
-    class StringGenerator
+    public class StringGenerator : BaseGenerator, IGenerator
     {
+        public Type Type { get; } = typeof(String);
+
+        public object GetValue()
+        {
+            return GetString();
+        }
     }
 }

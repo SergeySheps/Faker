@@ -12,13 +12,25 @@ namespace FakerProgram
         static void Main(string[] args)
         {
             Faker faker = new Faker();
-            Foo foo = faker.Create<Foo>();
-            var randomizer = new CustomRandomizer();
+            var foo = faker.Create<Bar>();
+            OutputProperties(foo);
 
-            Console.WriteLine(randomizer.GetDouble());
-            Console.WriteLine(randomizer.GetString());
-            Console.WriteLine(randomizer.GetDateTime());
             Console.ReadKey();
+        }
+
+        private static void OutputProperties(object value)
+        {
+            Console.WriteLine("Class: " + value.GetType().Name);
+            foreach (var property in value.GetType().GetProperties())
+            {
+                if (property?.GetMethod != null)
+                {
+                    var propertyValue = property.GetValue(value);
+                    Console.WriteLine(property.Name + ": " + propertyValue);
+
+                }
+            }
+            Console.WriteLine();
         }
     }
 }

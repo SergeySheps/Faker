@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Generators;
 
 namespace FakerLibrary
@@ -12,23 +13,50 @@ namespace FakerLibrary
         public Faker()
         {
             generators = new Dictionary<Type, IGenerator>();
+            generators.Add(typeof(String), (IGenerator)Activator.CreateInstance(typeof(StringGenerator)));
+            generators.Add(typeof(Int32), (IGenerator)Activator.CreateInstance(typeof(Int32Generator)));
         }
 
         public T Create<T>() where T : new()
         {
-            Type type = typeof(T);
-            T result = new T();
+            var constructors = typeof(T).GetConstructors().OrderByDescending(x => x.GetParameters().Length);
+            var constructor = constructors.First();
 
-            foreach (var property in type.GetProperties())
+            var parametersInfo = constructor.GetParameters();
+            var parameters = new object[parametersInfo.Length];
+
+            for (int i = 0; i < parametersInfo.Length; i++)
+            {
+                if (generators.TryGetValue(parametersInfo[i].ParameterType, out var generator))
+                    parameters[i] = generator.GetValue();
+            }
+
+            var result = constructor.Invoke(parameters);
+
+            foreach (var property in typeof(T).GetProperties())
             {
                 if (property?.SetMethod != null && property.SetMethod.IsPublic)
                 {
-                    //ToDo save this result
+                    SetValue(ref result, property);
                 }
             }
 
-            return result;
+            return (T)result;
         }
+
+        private void SetValue<T>(ref T result, PropertyInfo property)
+        {
+            var propertyType = property.PropertyType;
+            string objectType = result.GetType().Name;
+
+            if (generators.TryGetValue(propertyType, out var generator))
+                property.SetMethod.Invoke(result, new[] { generator.GetValue() });
+            else if (propertyType.Name == objectType)
+            {
+                property.SetMethod.Invoke(result, new object[] { result });
+            }
+        }
+
     }
 
 }
