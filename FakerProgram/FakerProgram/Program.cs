@@ -28,7 +28,7 @@ namespace FakerProgram
                 if (property?.GetMethod != null)
                 {
                     var propertyValue = property.GetValue(value);
-                    Console.WriteLine(property.PropertyType.Name+ " " + property.Name + ": " + propertyValue);
+                    Console.WriteLine("Type: " + property.PropertyType.Name + " variable name: " + property.Name + " value: " + propertyValue);
 
                 }
             }

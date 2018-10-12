@@ -21,6 +21,20 @@ namespace FakerLibrary
             generators.Add(typeof(float), (IGenerator)Activator.CreateInstance(typeof(FloatGenerator)));
             generators.Add(typeof(double), (IGenerator)Activator.CreateInstance(typeof(DoubleGenerator)));
             generators.Add(typeof(DateTime), (IGenerator)Activator.CreateInstance(typeof(DateTimeGenerator)));
+            GetGenerators();
+        }
+
+        private void GetGenerators()
+        {
+            var asm = Assembly.LoadFrom("Plugins.dll");
+            foreach (var type in asm.GetTypes())
+            {
+                if (type.GetInterface(typeof(IGenerator).FullName) != null)
+                {
+                    var gen = (IGenerator)Activator.CreateInstance(type);
+                    generators.Add(gen.Type, gen);
+                }
+            }
         }
 
         public T Create<T>(object nested = null) where T : new()
