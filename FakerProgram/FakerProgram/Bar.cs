@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace FakerProgram
 {
+    [Serializable]
     public class Bar
     {
+
         public int IntValue { get; set; }
 
         public Int64 Int64Value { get; set; }

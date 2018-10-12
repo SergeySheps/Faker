@@ -9,16 +9,27 @@ namespace FakerLibrary
     public class Faker
     {
         private Dictionary<Type, IGenerator> generators;
+        private List<object> nestedObjects;
 
         public Faker()
         {
             generators = new Dictionary<Type, IGenerator>();
+            nestedObjects = new List<object>();
             generators.Add(typeof(String), (IGenerator)Activator.CreateInstance(typeof(StringGenerator)));
             generators.Add(typeof(Int32), (IGenerator)Activator.CreateInstance(typeof(Int32Generator)));
+            generators.Add(typeof(Int64), (IGenerator)Activator.CreateInstance(typeof(Int64Generator)));
+            generators.Add(typeof(float), (IGenerator)Activator.CreateInstance(typeof(FloatGenerator)));
+            generators.Add(typeof(double), (IGenerator)Activator.CreateInstance(typeof(DoubleGenerator)));
+            generators.Add(typeof(DateTime), (IGenerator)Activator.CreateInstance(typeof(DateTimeGenerator)));
         }
 
-        public T Create<T>() where T : new()
+        public T Create<T>(object nested = null) where T : new()
         {
+            if (nested != null)
+            {
+                nestedObjects.Add(nested);
+            }
+
             var constructors = typeof(T).GetConstructors().OrderByDescending(x => x.GetParameters().Length);
             var constructor = constructors.First();
 
@@ -28,7 +39,9 @@ namespace FakerLibrary
             for (int i = 0; i < parametersInfo.Length; i++)
             {
                 if (generators.TryGetValue(parametersInfo[i].ParameterType, out var generator))
+                {
                     parameters[i] = generator.GetValue();
+                }
             }
 
             var result = constructor.Invoke(parameters);
@@ -50,11 +63,38 @@ namespace FakerLibrary
             string objectType = result.GetType().Name;
 
             if (generators.TryGetValue(propertyType, out var generator))
+            {
                 property.SetMethod.Invoke(result, new[] { generator.GetValue() });
+            }
             else if (propertyType.Name == objectType)
             {
                 property.SetMethod.Invoke(result, new object[] { result });
             }
+            else if (nestedObjects.Find(x => x.GetType() == propertyType) != null)
+            {
+                property.SetMethod.Invoke(result, new[] { nestedObjects.Find(x => x.GetType() == propertyType) });
+            }
+            else
+            {
+                property.SetMethod.Invoke(result, new[] { GetDTO(ref result, propertyType) });
+            }
+        }
+
+        private object GetDTO<T>(ref T result, Type property)
+        {
+            try
+            {
+                var method = typeof(Faker).GetMethod("Create", BindingFlags.Instance | BindingFlags.Public);
+                var genericMethod = method?.MakeGenericMethod(property);
+                var dto = genericMethod?.Invoke(this, new object[] { result });
+                return dto;
+            }
+            catch (Exception)
+            {
+                // if unknown dto
+            }
+
+            return null;
         }
 
     }

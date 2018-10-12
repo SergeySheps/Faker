@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace FakerProgram
 {
+    [Serializable]
     public class Foo
     {
         public Foo()

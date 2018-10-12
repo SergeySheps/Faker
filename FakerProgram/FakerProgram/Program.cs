@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FakerLibrary;
+using Newtonsoft.Json;
 
 namespace FakerProgram
 {
@@ -11,10 +8,15 @@ namespace FakerProgram
     {
         static void Main(string[] args)
         {
-            Faker faker = new Faker();
-            var foo = faker.Create<Bar>();
-            OutputProperties(foo);
 
+            Faker faker = new Faker();
+            var foo = faker.Create<Foo>();
+            OutputProperties(foo);
+            //var result = JsonConvert.SerializeObject(foo, Formatting.Indented, new JsonSerializerSettings()
+            //{
+            //    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            //});
+            //Console.WriteLine(result);
             Console.ReadKey();
         }
 
@@ -26,7 +28,7 @@ namespace FakerProgram
                 if (property?.GetMethod != null)
                 {
                     var propertyValue = property.GetValue(value);
-                    Console.WriteLine(property.Name + ": " + propertyValue);
+                    Console.WriteLine(property.PropertyType.Name+ " " + property.Name + ": " + propertyValue);
 
                 }
             }
