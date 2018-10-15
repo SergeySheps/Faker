@@ -16,7 +16,7 @@ namespace FakerLibrary
             generators = new Dictionary<Type, IGenerator>();
             nestedObjects = new List<object>();
             initializeGenDicitonary();
-            GetGenerators("Plugins.dll");
+            GetGenerators("../../../Plugins/bin/Debug/Plugins.dll");
         }
 
         private void initializeGenDicitonary()
@@ -30,12 +30,8 @@ namespace FakerLibrary
         }
 
 
-        private void GetGenerators(string path, bool isFakerLibrary = false)
+        private void GetGenerators(string path)
         {
-            if (!isFakerLibrary)
-            {
-                return;
-            }
             var asm = Assembly.LoadFrom(path);
             foreach (var type in asm.GetTypes())
             {
